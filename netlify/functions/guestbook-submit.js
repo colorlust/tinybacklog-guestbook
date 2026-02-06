@@ -44,6 +44,8 @@ exports.handler = async function (event) {
         const payload = {
             name: body.name || "Anonymous",
             message,
+            mood: body.mood || null,
+            bg: body.bg || null,
             avatar: body.avatar || null,
             created_at: new Date().toISOString(),
         };
