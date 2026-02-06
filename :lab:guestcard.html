@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guest Card Lab — Export PNG</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* LOCKED Tiny Backlog geometry */
+      --cardW: 280px;
+      --cardH: 392px;
+      --artW: 260px;
+      --artH: 318px;
+
+      --pageBg: #e6e6e6;
+      --cardBg: #EFEFEF;
+      --artBg: #61d5ff;
+      --ink: #292524;
+
+      /* less round like tinybacklog */
+      --cardRadius: 22px;
+      --artRadius: 18px;
+
+      --shadow: 0 18px 40px rgba(0, 0, 0, .18);
+      --font: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 40px;
+      background: var(--pageBg);
+      font-family: var(--font);
+      color: var(--ink);
+
+      display: grid;
+      grid-template-columns: max-content minmax(420px, 1fr);
+      gap: 34px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: 22px;
+      }
+    }
+
+    /* ===== LEFT COLUMN ===== */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: var(--cardW);
+    }
+
+    /* ===== CARD ===== */
+    .guest-card {
+      width: var(--cardW);
+      height: var(--cardH);
+      background: var(--cardBg);
+      border-radius: var(--cardRadius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .guest-art {
+      width: var(--artW);
+      height: var(--artH);
+      border-radius: var(--artRadius);
+      background: var(--artBg);
+      overflow: hidden;
+    }
+
+    .avatar {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .avatar img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .guest-meta {
+      height: 44px;
+      background: var(--cardBg);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 6px;
+    }
+
+    .guest-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      background: var(--ink);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1;
+      transform: translateY(-1px);
+    }
+
+    .guest-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      text-align: right;
+      line-height: 1;
+      padding-bottom: 2px;
+    }
+
+    .guest-name {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    .guest-date {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    /* ===== CARD FIELDS ===== */
+    .card-fields {
+      padding: 16px 14px 18px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, .03);
+      box-shadow: inset 0 1px 0 rgba(0, 0, 0, .04);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field + .field { margin-top: 14px; }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      opacity: .6;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, .15);
+      background: #fff;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: rgba(41, 37, 36, .35);
+      box-shadow: 0 0 0 3px rgba(41, 37, 36, .15);
+    }
+
+    /* ===== RIGHT PANEL ===== */
+    .panel { min-width: 0; max-width: 980px; }
+    @media (max-width: 900px) { .panel { max-width: 100%; } }
+    .panel-inner { padding-top: 2px; }
+
+    .picker { margin-bottom: 18px; }
+    .picker h3 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      opacity: .9;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .family { margin-bottom: 12px; }
+    .family-title {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      opacity: .75;
+    }
+
+    /* Swatches */
+    .swatch {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, .10);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, .10);
+      cursor: pointer;
+      position: relative;
+      padding: 0;
+      background: transparent;
+    }
+
+    .swatch::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 999px;
+      background: var(--swatch);
+    }
+
+    .swatch[aria-selected="true"],
+    .thumb[aria-selected="true"] {
+      outline: 3px solid rgba(41, 37, 36, .35);
+      outline-offset: 2px;
+    }
+
+    /* Thumbs */
+    .thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, .10);
+      border: 1px solid rgba(0, 0, 0, .08);
+      overflow: hidden;
+      padding: 6px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform .08s ease;
+    }
+
+    .thumb:hover { transform: translateY(-1px); }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+    .thumb:focus-visible,
+    .swatch:focus-visible,
+    .export-btn:focus-visible {
+      outline: 3px solid rgba(41, 37, 36, .35);
+      outline-offset: 2px;
+    }
+
+    /* Hair disabled */
+    .picker.is-disabled { opacity: .45; pointer-events: none; }
+    .picker-note { margin-top: 8px; font-size: 12px; font-weight: 600; opacity: .75; }
+
+    /* No wig thumb */
+    .thumb--nonewig { position: relative; padding: 0; display: grid; place-items: center; }
+    .thumb--nonewig::before {
+      content: "";
+      width: 38px; height: 38px;
+      border-radius: 999px;
+      border: 3px solid rgba(41, 37, 36, .65);
+      display: block;
+    }
+    .thumb--nonewig::after {
+      content: "";
+      position: absolute;
+      width: 44px; height: 3px;
+      background: rgba(41, 37, 36, .65);
+      transform: rotate(-35deg);
+      border-radius: 999px;
+    }
+
+    /* Under-card MOOD + BG: fixed 6-column grid */
+    .card-fields #picker-icon,
+    .card-fields #picker-bg {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .card-fields #picker-icon .thumb {
+      width: 100%;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .thumb--icon {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .card-fields #picker-bg .swatch {
+      width: 100%;
+      height: 36px;
+      box-shadow: none;
+    }
+
+    .card-fields #picker-bg .swatch::before { inset: 5px; }
+
+    /* Export button */
+    .export-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, .15);
+      background: #fff;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform .08s ease;
+    }
+
+    .export-btn:hover { transform: translateY(-1px); }
+    .export-btn:active { transform: translateY(0); }
+  </style>
+</head>
+
+<body>
+
+  <!-- LEFT: Card preview + fields -->
+  <div class="left-column">
+
+    <div class="guest-card" id="export-card">
+      <div class="guest-art">
+        <div class="avatar">
+          <img id="layer-body" src="avatar/body_001.svg" alt="">
+          <img id="layer-clothes" src="avatar/clothes_001.svg" alt="">
+          <img id="layer-face" src="avatar/face_001.svg" alt="">
+          <img id="layer-hair" src="avatar/hair_001a.svg" alt="">
+        </div>
+      </div>
+
+      <div class="guest-meta">
+        <div class="guest-icon" id="guest-icon" aria-hidden="true">★</div>
+        <div class="guest-text">
+          <div class="guest-name" id="guest-name">ADAM</div>
+          <div class="guest-date" id="guest-date"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-fields">
+      <div class="field">
+        <label for="name-input">NAME</label>
+        <input type="text" id="name-input" placeholder="Your name" maxlength="18" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label>MOOD</label>
+        <div id="picker-icon"></div>
+      </div>
+
+      <div class="field">
+        <label>BG</label>
+        <div id="picker-bg"></div>
+      </div>
+
+      <div class="field">
+        <button type="button" id="export-btn" class="export-btn">Export front as PNG</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Avatar pickers -->
+  <div class="panel">
+    <div class="panel-inner">
+
+      <div class="picker" id="picker-wrap-body">
+        <h3>Base</h3>
+        <div id="picker-body"></div>
+      </div>
+
+      <div class="picker" id="picker-wrap-clothes">
+        <h3>Fit</h3>
+        <div class="row" id="picker-clothes"></div>
+      </div>
+
+      <div class="picker" id="picker-wrap-face">
+        <h3>Mug</h3>
+        <div class="row" id="picker-face"></div>
+      </div>
+
+      <div class="picker" id="picker-wrap-hair">
+        <h3>Wig</h3>
+        <div class="row" id="picker-hair"></div>
+        <div class="picker-note" id="hair-note" hidden>No wigs for critters.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- canvg -->
+  <script src="https://unpkg.com/canvg@4.0.1/lib/umd.js"></script>
+
+  <script>
+    /* =========================
+       DATE
+    ========================= */
+    function formatDateForCard() {
+      return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date());
+    }
+    document.getElementById("guest-date").textContent = formatDateForCard();
+
+    /* =========================
+       ASSETS
+    ========================= */
+    const BODIES = [
+      {
+        familyId: "body_001",
+        label: "Lil Critters",
+        allowHair: false,
+        variants: [
+          { id: "body_001", file: "body_001.svg", swatch: "#F2C6A6" },
+        ],
+      },
+      {
+        familyId: "body_002",
+        label: "Lil Guys",
+        allowHair: true,
+        variants: [
+          { id: "body_002a", file: "body_002a.svg", swatch: "#5B3A2E" },
+          { id: "body_002b", file: "body_002b.svg", swatch: "#D86B4A" },
+          { id: "body_002c", file: "body_002c.svg", swatch: "#B47B58" },
+          { id: "body_002d", file: "body_002d.svg", swatch: "#F2C6A6" },
+        ],
+      },
+    ];
+
+    const ASSETS = {
+      clothes: ["clothes_001.svg", "clothes_002.svg"],
+      face: ["face_001.svg", "face_002.svg"],
+      hair: ["hair_001a.svg", "hair_001b.svg", "hair_002a.svg", "hair_002b.svg"],
+    };
+
+    const HAIR_BY_BODY_FAMILY = {
+      body_001: [],
+      body_002: ASSETS.hair,
+    };
+
+    const ICONS = ["★", "✿", "✦", "☻", "♥", "☁"];
+    const BACKGROUNDS = ["#64D7FB", "#397DC6", "#FF87A7", "#33B94B", "#FF855D", "#FFB054"];
+
+    /* =========================
+       LAYERS + STATE
+    ========================= */
+    const EMPTY_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"/>';
+    const LAYER_EL = {
+      body: document.getElementById("layer-body"),
+      clothes: document.getElementById("layer-clothes"),
+      face: document.getElementById("layer-face"),
+      hair: document.getElementById("layer-hair"),
+    };
+
+    const artEl = document.querySelector(".guest-art");
+    const iconEl = document.getElementById("guest-icon");
+    const nameInput = document.getElementById("name-input");
+    const nameDisplay = document.getElementById("guest-name");
+
+    const DEFAULT_ICON = ICONS[0] || "★";
+    const DEFAULT_BG = BACKGROUNDS[0];
+
+    const state = {
+      icon: DEFAULT_ICON,
+      bg: DEFAULT_BG,
+
+      bodyVariantId: "body_001",
+      bodyFamilyId: "body_001",
+      bodyFile: "body_001.svg",
+      allowHair: false,
+
+      clothes: "clothes_001.svg",
+      face: "face_001.svg",
+      hair: "hair_001a.svg",
+    };
+
+    /* =========================
+       PERSISTENCE
+    ========================= */
+    const STORAGE_KEY = "guestCardLab_v1";
+
+    function saveState() {
+      const payload = {
+        icon: state.icon,
+        bg: state.bg,
+        bodyVariantId: state.bodyVariantId,
+        bodyFamilyId: state.bodyFamilyId,
+        bodyFile: state.bodyFile,
+        allowHair: state.allowHair,
+        clothes: state.clothes,
+        face: state.face,
+        hair: state.hair,
+        name: (nameInput.value || "").trim(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+
+        if (s.icon) state.icon = s.icon;
+        if (s.bg) state.bg = s.bg;
+
+        if (s.bodyVariantId) state.bodyVariantId = s.bodyVariantId;
+        if (s.bodyFamilyId) state.bodyFamilyId = s.bodyFamilyId;
+        if (s.bodyFile) state.bodyFile = s.bodyFile;
+        if (typeof s.allowHair === "boolean") state.allowHair = s.allowHair;
+
+        if (s.clothes) state.clothes = s.clothes;
+        if (s.face) state.face = s.face;
+        if (typeof s.hair === "string") state.hair = s.hair;
+
+        if (typeof s.name === "string") {
+          nameInput.value = s.name;
+          nameDisplay.textContent = s.name ? s.name.toUpperCase() : " ";
+        }
+      } catch { }
+    }
+
+    function normalizeBodyFromVariantId() {
+      for (const family of BODIES) {
+        const found = family.variants.find(v => v.id === state.bodyVariantId);
+        if (found) {
+          state.bodyFamilyId = family.familyId;
+          state.bodyFile = found.file;
+          state.allowHair = family.allowHair;
+          return;
+        }
+      }
+    }
+
+    /* =========================
+       NAME FIELD
+    ========================= */
+    nameInput.value = nameInput.value || "ADAM";
+    nameInput.addEventListener("input", () => {
+      const v = (nameInput.value || "").trim();
+      nameDisplay.textContent = v ? v.toUpperCase() : " ";
+      saveState();
+    });
+
+    /* =========================
+       BODY SWATCHES
+    ========================= */
+    function renderBodySwatches() {
+      const wrap = document.getElementById("picker-body");
+      wrap.innerHTML = "";
+
+      BODIES.forEach((family) => {
+        const section = document.createElement("div");
+        section.className = "family";
+
+        const title = document.createElement("div");
+        title.className = "family-title";
+        title.textContent = family.label;
+        section.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        family.variants.forEach((variant) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "swatch";
+          btn.style.setProperty("--swatch", variant.swatch);
+          btn.dataset.variantId = variant.id;
+          btn.dataset.familyId = family.familyId;
+          btn.setAttribute("aria-selected", variant.id === state.bodyVariantId ? "true" : "false");
+          btn.title = `${family.label} · ${variant.id}${family.allowHair ? "" : " (no wigs)"}`;
+          btn.setAttribute("aria-label", btn.title);
+
+          btn.addEventListener("click", () => setBodyVariant(family, variant));
+          row.appendChild(btn);
+        });
+
+        section.appendChild(row);
+        wrap.appendChild(section);
+      });
+    }
+
+    function syncBodySelected() {
+      const wrap = document.getElementById("picker-body");
+      wrap.querySelectorAll(".swatch").forEach((btn) => {
+        btn.setAttribute("aria-selected", btn.dataset.variantId === state.bodyVariantId ? "true" : "false");
+      });
+    }
+
+    /* =========================
+       PICKERS (thumbs)
+    ========================= */
+    function setLayer(kind, file) {
+      state[kind] = file;
+
+      if (kind === "hair") {
+        if (!file) {
+          LAYER_EL.hair.src = EMPTY_SVG;
+          LAYER_EL.hair.style.display = "none";
+        } else {
+          LAYER_EL.hair.style.display = "";
+          LAYER_EL.hair.src = `avatar/${file}`;
+        }
+        syncSelected("hair");
+        saveState();
+        return;
+      }
+
+      LAYER_EL[kind].src = `avatar/${file}`;
+      syncSelected(kind);
+      saveState();
+    }
+
+    function syncSelected(kind) {
+      const wrap = document.getElementById(`picker-${kind}`);
+      if (!wrap) return;
+
+      wrap.querySelectorAll(".thumb").forEach((el) => {
+        const img = el.querySelector("img");
+        if (!img) return;
+        const filename = img.getAttribute("src").split("/").pop();
+        el.setAttribute("aria-selected", filename === state[kind] ? "true" : "false");
+      });
+    }
+
+    function makeThumb(kind, file) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "thumb";
+      btn.setAttribute("aria-selected", file === state[kind] ? "true" : "false");
+      btn.title = file;
+      btn.setAttribute("aria-label", file);
+
+      const img = document.createElement("img");
+      img.src = `avatar/${file}`;
+      img.alt = `${kind} ${file}`;
+      btn.appendChild(img);
+
+      btn.addEventListener("click", () => setLayer(kind, file));
+      return btn;
+    }
+
+    function renderPicker(kind) {
+      const wrap = document.getElementById(`picker-${kind}`);
+      wrap.innerHTML = "";
+      ASSETS[kind].forEach((file) => wrap.appendChild(makeThumb(kind, file)));
+    }
+
+    /* =========================
+       MOOD PICKER
+    ========================= */
+    function setIcon(symbol) {
+      state.icon = symbol;
+      iconEl.textContent = symbol;
+
+      document.querySelectorAll("#picker-icon .thumb").forEach((el) => {
+        el.setAttribute("aria-selected", el.dataset.icon === state.icon ? "true" : "false");
+      });
+
+      saveState();
+    }
+
+    function makeIconThumb(symbol) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "thumb thumb--icon";
+      btn.dataset.icon = symbol;
+      btn.title = `Mood ${symbol}`;
+      btn.setAttribute("aria-selected", symbol === state.icon ? "true" : "false");
+      btn.setAttribute("aria-label", btn.title);
+      btn.textContent = symbol;
+
+      btn.addEventListener("click", () => setIcon(symbol));
+      return btn;
+    }
+
+    function renderIconPicker() {
+      const wrap = document.getElementById("picker-icon");
+      wrap.innerHTML = "";
+      ICONS.forEach((s) => wrap.appendChild(makeIconThumb(s)));
+    }
+
+    /* =========================
+       BG PICKER
+    ========================= */
+    function setBackground(color) {
+      state.bg = color;
+      artEl.style.background = color;
+
+      document.querySelectorAll("#picker-bg .swatch").forEach((btn) => {
+        btn.setAttribute("aria-selected", btn.dataset.color === color ? "true" : "false");
+      });
+
+      saveState();
+    }
+
+    function makeBgSwatch(color) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "swatch";
+      btn.dataset.color = color;
+      btn.style.setProperty("--swatch", color);
+      btn.setAttribute("aria-selected", color === state.bg ? "true" : "false");
+      btn.title = color;
+      btn.setAttribute("aria-label", `Background ${color}`);
+
+      btn.addEventListener("click", () => setBackground(color));
+      return btn;
+    }
+
+    function renderBgPicker() {
+      const wrap = document.getElementById("picker-bg");
+      wrap.innerHTML = "";
+      BACKGROUNDS.forEach((c) => wrap.appendChild(makeBgSwatch(c)));
+    }
+
+    /* =========================
+       HAIR RULES
+    ========================= */
+    function renderHairPickerFiltered(allowedFiles) {
+      const wrap = document.getElementById("picker-hair");
+      wrap.innerHTML = "";
+
+      const noneBtn = document.createElement("button");
+      noneBtn.type = "button";
+      noneBtn.className = "thumb thumb--nonewig";
+      noneBtn.title = "No wig";
+      noneBtn.setAttribute("aria-label", "No wig");
+      noneBtn.setAttribute("aria-selected", state.hair === "" ? "true" : "false");
+      noneBtn.addEventListener("click", () => setLayer("hair", ""));
+      wrap.appendChild(noneBtn);
+
+      allowedFiles.forEach((file) => wrap.appendChild(makeThumb("hair", file)));
+
+      if (state.hair !== "") syncSelected("hair");
+    }
+
+    function applyHairRule() {
+      const wrap = document.getElementById("picker-wrap-hair");
+      const note = document.getElementById("hair-note");
+
+      const familyId = state.bodyFamilyId || "body_001";
+      const allowed = HAIR_BY_BODY_FAMILY[familyId] ?? ASSETS.hair;
+
+      if (!state.allowHair || allowed.length === 0) {
+        state.hair = "";
+        LAYER_EL.hair.src = EMPTY_SVG;
+        LAYER_EL.hair.style.display = "none";
+
+        wrap.classList.add("is-disabled");
+        note.hidden = false;
+
+        document.getElementById("picker-hair").innerHTML = "";
+        saveState();
+        return;
+      }
+
+      wrap.classList.remove("is-disabled");
+      note.hidden = true;
+
+      if (state.hair && !allowed.includes(state.hair)) state.hair = allowed[0];
+
+      if (!state.hair) {
+        LAYER_EL.hair.src = EMPTY_SVG;
+        LAYER_EL.hair.style.display = "none";
+      } else {
+        LAYER_EL.hair.style.display = "";
+        LAYER_EL.hair.src = `avatar/${state.hair}`;
+      }
+
+      renderHairPickerFiltered(allowed);
+      saveState();
+    }
+
+    /* =========================
+       SET BODY
+    ========================= */
+    function setBodyVariant(family, variant) {
+      state.bodyVariantId = variant.id;
+      state.bodyFamilyId = family.familyId;
+      state.bodyFile = variant.file;
+      state.allowHair = family.allowHair;
+
+      LAYER_EL.body.src = `avatar/${variant.file}`;
+      applyHairRule();
+      syncBodySelected();
+      saveState();
+    }
+
+    /* =========================
+       EXPORT HELPERS
+    ========================= */
+    async function fetchText(url) {
+      const res = await fetch(url, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+      return await res.text();
+    }
+
+    function roundedRectPath(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    /* =========================
+       ✅ EXPORT (canvg render layers → PNG)
+    ========================= */
+    async function exportFrontAsPNG() {
+      // quick signal you’re on the right code
+      console.log("EXPORT CLICK", new Date().toISOString());
+
+      // ensure webfonts are ready
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch { }
+      }
+
+      const cardW = 280, cardH = 392;
+      const pad = 10;
+      const artW = 260, artH = 318;
+      const artRadius = 18;
+      const cardRadius = 22;
+      const gap = 10;
+
+      const metaY = pad + artH + gap;
+      const metaX = pad;
+
+      const rootStyles = getComputedStyle(document.documentElement);
+      const cardBg = rootStyles.getPropertyValue("--cardBg").trim() || "#EFEFEF";
+      const ink = rootStyles.getPropertyValue("--ink").trim() || "#292524";
+
+      const name = (nameInput.value || "").trim().toUpperCase() || " ";
+      const dateStr = formatDateForCard();
+      const mood = state.icon || "★";
+      const artBg = state.bg || "#64D7FB";
+
+      const bodyUrl = new URL(LAYER_EL.body.getAttribute("src"), window.location.href).toString();
+      const clothesUrl = new URL(LAYER_EL.clothes.getAttribute("src"), window.location.href).toString();
+      const faceUrl = new URL(LAYER_EL.face.getAttribute("src"), window.location.href).toString();
+      const hairSrc = (LAYER_EL.hair.style.display === "none") ? "" : LAYER_EL.hair.getAttribute("src");
+      const hairUrl = hairSrc ? new URL(hairSrc, window.location.href).toString() : "";
+
+      let bodyText, clothesText, faceText, hairText;
+      try {
+        [bodyText, clothesText, faceText, hairText] = await Promise.all([
+          fetchText(bodyUrl),
+          fetchText(clothesUrl),
+          fetchText(faceUrl),
+          hairUrl ? fetchText(hairUrl) : Promise.resolve(""),
+        ]);
+      } catch (e) {
+        console.error("Fetch SVG failed", e);
+        alert("Export failed: couldn't load avatar SVG files.\n\n" + (e?.message || e));
+        return;
+      }
+
+      const scale = 4;
+      const canvas = document.createElement("canvas");
+      canvas.width = cardW * scale;
+      canvas.height = cardH * scale;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        alert("No 2D canvas context available.");
+        return;
+      }
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+      // Card BG
+      ctx.fillStyle = cardBg;
+      roundedRectPath(ctx, 0, 0, cardW, cardH, cardRadius);
+      ctx.fill();
+
+      // Art BG
+      ctx.fillStyle = artBg;
+      roundedRectPath(ctx, pad, pad, artW, artH, artRadius);
+      ctx.fill();
+
+      // Clip art box
+      ctx.save();
+      roundedRectPath(ctx, pad, pad, artW, artH, artRadius);
+      ctx.clip();
+
+      const Canvg = window.canvg && window.canvg.Canvg;
+      if (!Canvg) {
+        alert("canvg didn't load. Check the canvg <script> include.");
+        ctx.restore();
+        return;
+      }
+
+      async function renderLayer(svgText) {
+        const tmp = document.createElement("canvas");
+        tmp.width = artW;
+        tmp.height = artH;
+        const tctx = tmp.getContext("2d");
+        if (!tctx) return;
+
+        const renderer = await Canvg.fromString(tctx, svgText, {
+          ignoreDimensions: true,
+          ignoreClear: true,
+          scaleWidth: artW,
+          scaleHeight: artH,
+        });
+
+        await renderer.render();
+        ctx.drawImage(tmp, pad, pad, artW, artH);
+      }
+
+      await renderLayer(bodyText);
+      await renderLayer(clothesText);
+      await renderLayer(faceText);
+      if (hairText) await renderLayer(hairText);
+
+      ctx.restore();
+
+      // Mood icon
+      ctx.fillStyle = ink;
+      ctx.beginPath();
+      ctx.arc(metaX + 22, metaY + 22, 22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mood text
+      ctx.fillStyle = "#fff";
+      ctx.font = "800 28px Montserrat, system-ui, -apple-system, Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(mood, metaX + 22, metaY + 22);
+
+      // Name + date
+      const textRightX = pad + artW - 6;
+      ctx.fillStyle = ink;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+
+      ctx.font = "800 14px Montserrat, system-ui, -apple-system, Segoe UI, sans-serif";
+      ctx.fillText(name, textRightX, metaY + 16);
+
+      ctx.font = "500 14px Montserrat, system-ui, -apple-system, Segoe UI, sans-serif";
+      ctx.fillText(dateStr, textRightX, metaY + 36);
+
+      // Download
+      const dataUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      const safeName = (nameInput.value || "guest").trim().replace(/\s+/g, "_").toLowerCase();
+      a.download = `guest_card_front_${safeName}.png`;
+      a.href = dataUrl;
+      a.click();
+    }
+
+    /* =========================
+       INIT
+    ========================= */
+    Object.values(LAYER_EL).forEach(img => img.src = EMPTY_SVG);
+
+    loadState();
+    normalizeBodyFromVariantId();
+
+    LAYER_EL.body.src = `avatar/${state.bodyFile}`;
+    LAYER_EL.clothes.src = `avatar/${state.clothes}`;
+    LAYER_EL.face.src = `avatar/${state.face}`;
+    LAYER_EL.hair.src = state.hair ? `avatar/${state.hair}` : EMPTY_SVG;
+    LAYER_EL.hair.style.display = state.hair ? "" : "none";
+
+    function setBackgroundInit(color) {
+      state.bg = color;
+      artEl.style.background = color;
+    }
+    setBackgroundInit(state.bg);
+
+    function renderPicker(kind) {
+      const wrap = document.getElementById(`picker-${kind}`);
+      wrap.innerHTML = "";
+      ASSETS[kind].forEach((file) => wrap.appendChild(makeThumb(kind, file)));
+    }
+
+    renderIconPicker();
+    setIcon(state.icon);
+
+    renderBgPicker();
+    renderBodySwatches();
+    ["clothes", "face"].forEach(renderPicker);
+    applyHairRule();
+
+    // Hook export
+    document.getElementById("export-btn").addEventListener("click", exportFrontAsPNG);
+  </script>
+</body>
+</html>

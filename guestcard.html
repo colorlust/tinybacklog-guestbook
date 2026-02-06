@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guest Card Lab — Export PNG</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Montserrat (UI + card) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800&display=swap" rel="stylesheet">
+  <!-- Signature script -->
+  <link href="https://fonts.googleapis.com/css2?family=Meow+Script&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* LOCKED Tiny Backlog geometry (desktop) */
+      --cardW: 280px;
+      --cardH: 392px;
+      --artW: 260px;
+      --artH: 318px;
+
+      /* one mobile width source of truth */
+      --stackW: 280px;
+
+      --pageBg: #e6e6e6;
+      --cardBg: #EFEFEF;
+      --artBg: #61d5ff;
+      --ink: #292524;
+
+      --cardRadius: 22px;
+      --artRadius: 18px;
+
+      --shadow: 0 18px 40px rgba(0, 0, 0, .18);
+
+      --font: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --script: "Meow Script", cursive;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px;
+      background: var(--pageBg);
+      font-family: var(--font);
+      color: var(--ink);
+
+      display: grid;
+      grid-template-columns: max-content minmax(420px, 1fr);
+      gap: 34px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: 22px;
+      }
+    }
+
+    /* ===== LEFT COLUMN ===== */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: var(--cardW);
+      min-width: 0;
+    }
+
+    /* ===== CARD ===== */
+    .guest-card {
+      width: var(--cardW);
+      height: var(--cardH);
+      background: var(--cardBg);
+      border-radius: var(--cardRadius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .guest-art {
+      width: var(--artW);
+      height: var(--artH);
+      border-radius: var(--artRadius);
+      background: var(--artBg);
+      overflow: hidden;
+    }
+
+    .avatar {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .avatar img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .guest-meta {
+      height: 44px;
+      background: var(--cardBg);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 6px;
+    }
+
+    .guest-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      background: var(--ink);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1;
+      transform: translateY(-1px);
+    }
+
+    .guest-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      text-align: right;
+      line-height: 1;
+      padding-bottom: 2px;
+    }
+
+    .guest-name {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    .guest-date {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    /* ===== BACK CARD ===== */
+    .guest-card--back {
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .back-inner {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      flex: 1;
+      display: flex;
+    }
+
+    .back-content {
+      padding: 10px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .back-date {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .back-note {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+      white-space: pre-wrap;
+      flex: 1;
+    }
+
+    .back-sign {
+      margin-top: auto;
+      font-family: var(--script);
+      font-size: 24px;
+      line-height: 0.95;
+      font-weight: 400;
+      text-align: right;
+      opacity: .95;
+    }
+
+    .back-stamp {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 2px;
+    }
+
+    /* ===== CARD FIELDS ===== */
+    .card-fields {
+      padding: 16px 14px 18px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, .03);
+      box-shadow: inset 0 1px 0 rgba(0, 0, 0, .04);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field+.field {
+      margin-top: 14px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      opacity: .6;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, .15);
+      background: #fff;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: rgba(41, 37, 36, .35);
+      box-shadow: 0 0 0 3px rgba(41, 37, 36, .15);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, .15);
+      background: #fff;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      outline: none;
+      line-height: 1.35;
+    }
+
+    /* Under-card MOOD + BG: fixed 6-column grid */
+    .card-fields #picker-icon,
+    .card-fields #picker-bg {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .card-fields #picker-icon .thumb {
+      width: 100%;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .thumb--icon {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .card-fields #picker-bg .swatch {
+      width: 100%;
+      height: 36px;
+      box-shadow: none;
+    }
+
+    .card-fields #picker-bg .swatch::before {
+      inset: 5px;
+    }
+
+    /* ===== RIGHT PANEL ===== */
+    .panel {
+      min-width: 0;
+      max-width: 980px;
+    }
+
+    @media (max-width: 900px) {
+      .panel {
+        max-width: 100%;
+      }
+    }
+
+    .panel-inner {
+      padding-top: 2px;
+      min-width: 0;
+    }
+
+    .picker {
+      margin-bottom: 18px;
+    }
+
+    .picker h3 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      opacity: .9;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .family {
+      margin-bottom: 12px;
+    }
+
+    .family-title {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      opacity: .75;
+    }
+
+    /* Swatches */
+    .swatch {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, .10);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, .10);
+      cursor: pointer;
+      position: relative;
+      padding: 0;
+      background: transparent;
+    }
+
+    .swatch::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 999px;
+      background: var(--swatch);
+    }
+
+    .swatch[aria-selected="true"],
+    .thumb[aria-selected="true"] {
+      outline: 3px solid rgba(41, 37, 36, .35);
+      outline-offset: 2px;
+    }
+
+    /* Thumbs */
+    .thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, .10);
+      border: 1px solid rgba(0, 0, 0, .08);
+      overflow: hidden;
+      padding: 6px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform .08s ease;
+    }
+
+    .thumb:hover {
+      transform: translateY(-1px);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .thumb:focus-visible,
+    .swatch:focus-visible,
+    .export-btn:focus-visible {
+      outline: 3px solid rgba(41, 37, 36, .35);
+      outline-offset: 2px;
+    }
+
+    /* Hair disabled */
+    .picker.is-disabled {
+      opacity: .45;
+      pointer-events: none;
+    }
+
+    .picker-note {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: .75;
+    }
+
+    /* No wig thumb */
+    .thumb--nonewig {
+      position: relative;
+      padding: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .thumb--nonewig::before {
+      content: "";
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 3px solid rgba(41, 37, 36, .65);
+      display: block;
+    }
+
+    .thumb--nonewig::after {
+      content: "";
+      position: absolute;
+      width: 44px;
+      height: 3px;
+      background: rgba(41, 37, 36, .65);
+      transform: rotate(-35deg);
+      border-radius: 999px;
+    }
+
+    /* ===== Front/Back toggle ===== */
+    .view-toggle {
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, .05);
+      padding: 8px;
+      border-radius: 16px;
+    }
+
+    .view-btn {
+      flex: 1;
+      border: 1px solid rgba(0, 0, 0, .10);
+      background: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-family: var(--font);
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .view-btn[aria-selected="true"] {
+      background: var(--ink);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .is-hidden {
+      display: none;
+    }
+
+    /* ===== Export area ===== */
+    .export-wrap {
+      margin-top: 18px;
+    }
+
+    .export-wrap::before {
+      content: "";
+      display: block;
+      height: 1px;
+      background: rgba(0, 0, 0, .08);
+      margin-bottom: 14px;
+    }
+
+    .export-btn {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+
+      border: none;
+      background: var(--ink);
+      color: #fff;
+
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: .01em;
+
+      cursor: pointer;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      box-shadow:
+        0 10px 18px rgba(0, 0, 0, .18),
+        inset 0 1px 0 rgba(255, 255, 255, .15);
+
+      transition:
+        transform .12s ease,
+        box-shadow .12s ease,
+        background .12s ease;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 14px 24px rgba(0, 0, 0, .22),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+    }
+
+    .export-btn:active {
+      transform: translateY(0);
+      box-shadow:
+        0 6px 12px rgba(0, 0, 0, .25),
+        inset 0 2px 4px rgba(0, 0, 0, .25);
+    }
+
+    .export-icon {
+      font-size: 16px;
+      line-height: 1;
+      transform: translateY(1px);
+    }
+
+    #export-slot .export-wrap {
+      margin-top: 8px;
+    }
+
+    /* ===== MOBILE: tighter gutters + stack width matches gutters ===== */
+    @media (max-width: 900px) {
+      :root {
+        --gutter: 12px;
+      }
+
+      html,
+      body {
+        overflow-x: hidden;
+      }
+
+      body {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: var(--gutter);
+      }
+
+      :root {
+        --stackW: min(280px, calc(100vw - (var(--gutter) * 2)));
+      }
+
+      .left-column,
+      .panel-inner,
+      #export-wrap,
+      #export-slot .export-wrap {
+        width: 100%;
+        max-width: var(--stackW);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .left-column {
+        width: 100%;
+      }
+
+      .guest-card {
+        width: var(--stackW);
+        height: calc(var(--stackW) * (392 / 280));
+      }
+
+      .guest-art {
+        width: calc(var(--stackW) - 20px);
+        height: calc((var(--stackW) - 20px) * (318 / 260));
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LEFT: Card preview + fields -->
+  <div class="left-column">
+    <div class="view-toggle" role="tablist" aria-label="Card side">
+      <button type="button" class="view-btn" id="btn-front" aria-selected="true">Front</button>
+      <button type="button" class="view-btn" id="btn-back" aria-selected="false">Back</button>
+    </div>
+
+    <!-- FRONT: Card preview -->
+    <div class="guest-card" id="export-card">
+      <div class="guest-art">
+        <div class="avatar">
+          <img id="layer-body" src="avatar/body_001.svg" alt="">
+          <img id="layer-clothes" src="avatar/clothes_001.svg" alt="">
+          <img id="layer-face" src="avatar/face_001.svg" alt="">
+          <img id="layer-hair" src="avatar/hair_001a.svg" alt="">
+        </div>
+      </div>
+
+      <div class="guest-meta">
+        <div class="guest-icon" id="guest-icon" aria-hidden="true">★</div>
+        <div class="guest-text">
+          <div class="guest-name" id="guest-name">A SECRET ADMIRER</div>
+          <div class="guest-date" id="guest-date"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACK: Card preview -->
+    <div class="guest-card guest-card--back is-hidden" id="export-card-back" aria-label="Guest card back preview">
+      <div class="back-inner">
+        <div class="back-content">
+          <div class="back-date" id="back-date"></div>
+          <div class="back-note" id="back-note"></div>
+          <div class="back-sign" id="back-sign"></div>
+        </div>
+      </div>
+
+      <div class="back-stamp">
+        <div class="guest-icon" id="back-icon" aria-hidden="true">★</div>
+      </div>
+    </div>
+
+    <!-- Editor panel -->
+    <div class="card-fields" id="editor-panel">
+      <div class="field">
+        <label for="name-input">NAME</label>
+        <input type="text" id="name-input" placeholder="Your name" maxlength="18" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label>MOOD</label>
+        <div id="picker-icon"></div>
+      </div>
+
+      <div class="field">
+        <label>BG</label>
+        <div id="picker-bg"></div>
+      </div>
+
+      <div class="field">
+        <label for="note-input">NOTE (BACK)</label>
+        <textarea id="note-input" placeholder="Write a little note…" maxlength="160"></textarea>
+      </div>
+    </div>
+
+    <!-- Export (moves to bottom on mobile) -->
+    <div class="export-wrap" id="export-wrap">
+      <button type="button" id="export-btn" class="export-btn">
+        <span class="export-icon" aria-hidden="true">⬇</span>
+        Export pic
+      </button>
+
+      <div class="field">
+        <button type="button" id="send-note-btn" class="export-btn">
+          💌 Send note
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Avatar pickers -->
+  <div class="panel">
+    <div class="panel-inner">
+      <div class="picker" id="picker-wrap-body">
+        <h3>Base</h3>
+        <div id="picker-body"></div>
+      </div>
+
+      <div class="picker" id="picker-wrap-clothes">
+        <h3>Fit</h3>
+        <div class="row" id="picker-clothes"></div>
+      </div>
+
+      <div class="picker" id="picker-wrap-face">
+        <h3>Mug</h3>
+        <div class="row" id="picker-face"></div>
+      </div>
+
+      <div class="picker" id="picker-wrap-hair">
+        <h3>Wig</h3>
+        <div class="row" id="picker-hair"></div>
+        <div class="picker-note" id="hair-note" hidden>No wigs for critters.</div>
+      </div>
+
+      <div id="export-slot"></div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================
+       DATE
+    ========================= */
+    function formatDateForCard() {
+      return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date());
+    }
+    document.getElementById("guest-date").textContent = formatDateForCard();
+
+    /* =========================
+       DEFAULTS
+    ========================= */
+    const DEFAULT_NAME = "A Secret Admirer";
+    const DEFAULT_NOTE = "Sending you a little love & support in these trying times!";
+    const NOTE_MAX = 160;
+
+    function effectiveName(raw) {
+      const v = (raw || "").trim();
+      return v ? v : DEFAULT_NAME;
+    }
+
+    /* =========================
+       ASSETS
+    ========================= */
+    const BODIES = [
+      { familyId: "body_001", label: "Lil Critters", allowHair: false, variants: [{ id: "body_001", file: "body_001.svg", swatch: "#F2C6A6" }] },
+      {
+        familyId: "body_002", label: "Lil Guys", allowHair: true,
+        variants: [
+          { id: "body_002a", file: "body_002a.svg", swatch: "#5B3A2E" },
+          { id: "body_002b", file: "body_002b.svg", swatch: "#D86B4A" },
+          { id: "body_002c", file: "body_002c.svg", swatch: "#B47B58" },
+          { id: "body_002d", file: "body_002d.svg", swatch: "#F2C6A6" },
+        ],
+      },
+    ];
+
+    const ASSETS = {
+      clothes: ["clothes_001.svg", "clothes_002.svg"],
+      face: ["face_001.svg", "face_002.svg"],
+      hair: ["hair_001a.svg", "hair_001b.svg", "hair_002a.svg", "hair_002b.svg"],
+    };
+
+    const HAIR_BY_BODY_FAMILY = { body_001: [], body_002: ASSETS.hair };
+    const ICONS = ["★", "✿", "✦", "☻", "♥", "☁"];
+    const BACKGROUNDS = ["#64D7FB", "#397DC6", "#FF87A7", "#33B94B", "#FF855D", "#FFB054"];
+
+    /* =========================
+       LAYERS + STATE
+    ========================= */
+    const EMPTY_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"/>';
+    const LAYER_EL = {
+      body: document.getElementById("layer-body"),
+      clothes: document.getElementById("layer-clothes"),
+      face: document.getElementById("layer-face"),
+      hair: document.getElementById("layer-hair"),
+    };
+
+    const artEl = document.querySelector(".guest-art");
+    const iconEl = document.getElementById("guest-icon");
+    const nameInput = document.getElementById("name-input");
+    const nameDisplay = document.getElementById("guest-name");
+
+    // Back elements
+    const noteInput = document.getElementById("note-input");
+    const backDateEl = document.getElementById("back-date");
+    const backNoteEl = document.getElementById("back-note");
+    const backIconEl = document.getElementById("back-icon");
+    const backSignEl = document.getElementById("back-sign");
+
+    // Front/Back preview toggle
+    const frontCardEl = document.getElementById("export-card");
+    const backCardEl = document.getElementById("export-card-back");
+    const btnFront = document.getElementById("btn-front");
+    const btnBack = document.getElementById("btn-back");
+
+    function setSide(side) {
+      const isFront = side === "front";
+
+      frontCardEl.classList.toggle("is-hidden", !isFront);
+      backCardEl.classList.toggle("is-hidden", isFront);
+
+      btnFront.setAttribute("aria-selected", isFront ? "true" : "false");
+      btnBack.setAttribute("aria-selected", !isFront ? "true" : "false");
+    }
+
+    btnFront.addEventListener("click", () => setSide("front"));
+    btnBack.addEventListener("click", () => setSide("back"));
+    setSide("front");
+
+    const DEFAULT_ICON = ICONS[0] || "★";
+    const DEFAULT_BG = BACKGROUNDS[0];
+
+    const state = {
+      icon: DEFAULT_ICON,
+      bg: DEFAULT_BG,
+      bodyVariantId: "body_001",
+      bodyFamilyId: "body_001",
+      bodyFile: "body_001.svg",
+      allowHair: false,
+      clothes: "clothes_001.svg",
+      face: "face_001.svg",
+      hair: "hair_001a.svg",
+      note: DEFAULT_NOTE,
+    };
+
+    function normalizeBodyFromVariantId() {
+      for (const family of BODIES) {
+        const found = family.variants.find(v => v.id === state.bodyVariantId);
+        if (found) {
+          state.bodyFamilyId = family.familyId;
+          state.bodyFile = found.file;
+          state.allowHair = family.allowHair;
+          return;
+        }
+      }
+    }
+
+    /* =========================
+       NAME FIELD
+    ========================= */
+    nameInput.addEventListener("input", () => {
+      const eff = effectiveName(nameInput.value || "");
+      nameDisplay.textContent = eff.toUpperCase();
+      backSignEl.textContent = eff; // signature mirrors name (not uppercase)
+    });
+
+    nameInput.addEventListener("blur", () => {
+      if (!nameInput.value.trim()) {
+        nameInput.value = DEFAULT_NAME;
+        nameDisplay.textContent = DEFAULT_NAME.toUpperCase();
+        backSignEl.textContent = DEFAULT_NAME;
+      }
+    });
+
+    /* =========================
+       NOTE FIELD (BACK)
+    ========================= */
+    noteInput.maxLength = NOTE_MAX;
+
+    noteInput.addEventListener("input", () => {
+      let v = (noteInput.value || "");
+      if (v.length > NOTE_MAX) v = v.slice(0, NOTE_MAX);
+      noteInput.value = v;
+
+      const trimmed = v.trim();
+      state.note = trimmed ? trimmed : DEFAULT_NOTE;
+      backNoteEl.textContent = state.note;
+    });
+
+    /* =========================
+       BODY SWATCHES
+    ========================= */
+    function renderBodySwatches() {
+      const wrap = document.getElementById("picker-body");
+      wrap.innerHTML = "";
+
+      BODIES.forEach((family) => {
+        const section = document.createElement("div");
+        section.className = "family";
+
+        const title = document.createElement("div");
+        title.className = "family-title";
+        title.textContent = family.label;
+        section.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        family.variants.forEach((variant) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "swatch";
+          btn.style.setProperty("--swatch", variant.swatch);
+          btn.dataset.variantId = variant.id;
+          btn.dataset.familyId = family.familyId;
+          btn.setAttribute("aria-selected", variant.id === state.bodyVariantId ? "true" : "false");
+          btn.title = `${family.label} · ${variant.id}${family.allowHair ? "" : " (no wigs)"}`;
+          btn.setAttribute("aria-label", btn.title);
+
+          btn.addEventListener("click", () => setBodyVariant(family, variant));
+          row.appendChild(btn);
+        });
+
+        section.appendChild(row);
+        wrap.appendChild(section);
+      });
+    }
+
+    function syncBodySelected() {
+      const wrap = document.getElementById("picker-body");
+      wrap.querySelectorAll(".swatch").forEach((btn) => {
+        btn.setAttribute("aria-selected", btn.dataset.variantId === state.bodyVariantId ? "true" : "false");
+      });
+    }
+
+    /* =========================
+       PICKERS (thumbs)
+    ========================= */
+    function setLayer(kind, file) {
+      state[kind] = file;
+
+      if (kind === "hair") {
+        if (!file) {
+          LAYER_EL.hair.src = EMPTY_SVG;
+          LAYER_EL.hair.style.display = "none";
+        } else {
+          LAYER_EL.hair.style.display = "";
+          LAYER_EL.hair.src = `avatar/${file}`;
+        }
+        syncSelected("hair");
+        return;
+      }
+
+      LAYER_EL[kind].src = `avatar/${file}`;
+      syncSelected(kind);
+    }
+
+    function syncSelected(kind) {
+      const wrap = document.getElementById(`picker-${kind}`);
+      if (!wrap) return;
+
+      wrap.querySelectorAll(".thumb").forEach((el) => {
+        const img = el.querySelector("img");
+        if (!img) return;
+        const filename = img.getAttribute("src").split("/").pop();
+        el.setAttribute("aria-selected", filename === state[kind] ? "true" : "false");
+      });
+    }
+
+    function makeThumb(kind, file) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "thumb";
+      btn.setAttribute("aria-selected", file === state[kind] ? "true" : "false");
+      btn.title = file;
+      btn.setAttribute("aria-label", file);
+
+      const img = document.createElement("img");
+      img.src = `avatar/${file}`;
+      img.alt = `${kind} ${file}`;
+      btn.appendChild(img);
+
+      btn.addEventListener("click", () => setLayer(kind, file));
+      return btn;
+    }
+
+    function renderPicker(kind) {
+      const wrap = document.getElementById(`picker-${kind}`);
+      wrap.innerHTML = "";
+      ASSETS[kind].forEach((file) => wrap.appendChild(makeThumb(kind, file)));
+    }
+
+    /* =========================
+       MOOD PICKER
+    ========================= */
+    function setIcon(symbol) {
+      state.icon = symbol;
+      iconEl.textContent = symbol;
+      backIconEl.textContent = symbol;
+
+      document.querySelectorAll("#picker-icon .thumb").forEach((el) => {
+        el.setAttribute("aria-selected", el.dataset.icon === state.icon ? "true" : "false");
+      });
+    }
+
+    function makeIconThumb(symbol) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "thumb thumb--icon";
+      btn.dataset.icon = symbol;
+      btn.title = `Mood ${symbol}`;
+      btn.setAttribute("aria-selected", symbol === state.icon ? "true" : "false");
+      btn.setAttribute("aria-label", btn.title);
+      btn.textContent = symbol;
+
+      btn.addEventListener("click", () => setIcon(symbol));
+      return btn;
+    }
+
+    function renderIconPicker() {
+      const wrap = document.getElementById("picker-icon");
+      wrap.innerHTML = "";
+      ICONS.forEach((s) => wrap.appendChild(makeIconThumb(s)));
+    }
+
+    /* =========================
+       BG PICKER
+    ========================= */
+    function setBackground(color) {
+      state.bg = color;
+      artEl.style.background = color;
+
+      document.querySelectorAll("#picker-bg .swatch").forEach((btn) => {
+        btn.setAttribute("aria-selected", btn.dataset.color === color ? "true" : "false");
+      });
+    }
+
+    function makeBgSwatch(color) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "swatch";
+      btn.dataset.color = color;
+      btn.style.setProperty("--swatch", color);
+      btn.setAttribute("aria-selected", color === state.bg ? "true" : "false");
+      btn.title = color;
+      btn.setAttribute("aria-label", `Background ${color}`);
+
+      btn.addEventListener("click", () => setBackground(color));
+      return btn;
+    }
+
+    function renderBgPicker() {
+      const wrap = document.getElementById("picker-bg");
+      wrap.innerHTML = "";
+      BACKGROUNDS.forEach((c) => wrap.appendChild(makeBgSwatch(c)));
+    }
+
+    /* =========================
+       HAIR RULES
+    ========================= */
+    function renderHairPickerFiltered(allowedFiles) {
+      const wrap = document.getElementById("picker-hair");
+      wrap.innerHTML = "";
+
+      const noneBtn = document.createElement("button");
+      noneBtn.type = "button";
+      noneBtn.className = "thumb thumb--nonewig";
+      noneBtn.title = "No wig";
+      noneBtn.setAttribute("aria-label", "No wig");
+      noneBtn.setAttribute("aria-selected", state.hair === "" ? "true" : "false");
+      noneBtn.addEventListener("click", () => setLayer("hair", ""));
+      wrap.appendChild(noneBtn);
+
+      allowedFiles.forEach((file) => wrap.appendChild(makeThumb("hair", file)));
+      if (state.hair !== "") syncSelected("hair");
+    }
+
+    function applyHairRule() {
+      const wrap = document.getElementById("picker-wrap-hair");
+      const note = document.getElementById("hair-note");
+
+      const familyId = state.bodyFamilyId || "body_001";
+      const allowed = HAIR_BY_BODY_FAMILY[familyId] ?? ASSETS.hair;
+
+      if (!state.allowHair || allowed.length === 0) {
+        state.hair = "";
+        LAYER_EL.hair.src = EMPTY_SVG;
+        LAYER_EL.hair.style.display = "none";
+
+        wrap.classList.add("is-disabled");
+        note.hidden = false;
+
+        document.getElementById("picker-hair").innerHTML = "";
+        return;
+      }
+
+      wrap.classList.remove("is-disabled");
+      note.hidden = true;
+
+      if (state.hair && !allowed.includes(state.hair)) state.hair = allowed[0];
+
+      if (!state.hair) {
+        LAYER_EL.hair.src = EMPTY_SVG;
+        LAYER_EL.hair.style.display = "none";
+      } else {
+        LAYER_EL.hair.style.display = "";
+        LAYER_EL.hair.src = `avatar/${state.hair}`;
+      }
+
+      renderHairPickerFiltered(allowed);
+    }
+
+    /* =========================
+       SET BODY
+    ========================= */
+    function setBodyVariant(family, variant) {
+      state.bodyVariantId = variant.id;
+      state.bodyFamilyId = family.familyId;
+      state.bodyFile = variant.file;
+      state.allowHair = family.allowHair;
+
+      LAYER_EL.body.src = `avatar/${variant.file}`;
+      applyHairRule();
+      syncBodySelected();
+    }
+
+    /* =========================
+       ✅ EXPORT (INLINE SVG LAYERS → PNG)
+       (Front only)
+    ========================= */
+    const SVG_CACHE = new Map();
+
+    async function fetchText(url) {
+      if (SVG_CACHE.has(url)) return SVG_CACHE.get(url);
+      const res = await fetch(url, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+      const txt = await res.text();
+      SVG_CACHE.set(url, txt);
+      return txt;
+    }
+
+    function parseSvgEl(svgText) {
+      const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
+      return doc.querySelector("svg");
+    }
+
+    function getViewBox(svgEl) {
+      const vb = svgEl.getAttribute("viewBox");
+      if (vb) {
+        const [x, y, w, h] = vb.split(/\s+|,/).map(Number);
+        if ([x, y, w, h].every(n => Number.isFinite(n))) return { x, y, w, h };
+      }
+      const w = parseFloat(svgEl.getAttribute("width")) || 260;
+      const h = parseFloat(svgEl.getAttribute("height")) || 318;
+      return { x: 0, y: 0, w, h };
+    }
+
+    function inlineLayerInto(parentEl, svgText, x, y, w, h) {
+      const svgEl = parseSvgEl(svgText);
+      if (!svgEl) return;
+
+      const vb = getViewBox(svgEl);
+
+      const scale = Math.min(w / vb.w, h / vb.h);
+      const tx = x + (w - vb.w * scale) / 2 - vb.x * scale;
+      const ty = y + (h - vb.h * scale) / 2 - vb.y * scale;
+
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("transform", `translate(${tx} ${ty}) scale(${scale})`);
+
+      Array.from(svgEl.childNodes).forEach((node) => {
+        if (node.nodeType === 3 && !node.textContent.trim()) return;
+        g.appendChild(parentEl.ownerDocument.importNode(node, true));
+      });
+
+      parentEl.appendChild(g);
+    }
+
+    function svgToBlobUrl(svgString) {
+      const blob = new Blob([svgString], { type: "image/svg+xml" });
+      return URL.createObjectURL(blob);
+    }
+
+    async function exportFrontAsPNG() {
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch { }
+      }
+
+      const cardW = 280, cardH = 392;
+      const pad = 10;
+      const artW = 260, artH = 318;
+      const artRadius = 18;
+      const cardRadius = 22;
+      const gap = 10;
+
+      const metaY = pad + artH + gap;
+      const metaX = pad;
+
+      const rootStyles = getComputedStyle(document.documentElement);
+      const cardBg = rootStyles.getPropertyValue("--cardBg").trim() || "#EFEFEF";
+      const ink = rootStyles.getPropertyValue("--ink").trim() || "#292524";
+
+      const name = effectiveName(nameInput.value).toUpperCase();
+      const dateStr = formatDateForCard();
+      const mood = state.icon || "★";
+      const artBg = state.bg || "#64D7FB";
+
+      const bodyUrl = new URL(LAYER_EL.body.getAttribute("src"), window.location.href).toString();
+      const clothesUrl = new URL(LAYER_EL.clothes.getAttribute("src"), window.location.href).toString();
+      const faceUrl = new URL(LAYER_EL.face.getAttribute("src"), window.location.href).toString();
+      const hairSrc = (LAYER_EL.hair.style.display === "none") ? "" : LAYER_EL.hair.getAttribute("src");
+      const hairUrl = hairSrc ? new URL(hairSrc, window.location.href).toString() : "";
+
+      let bodyText, clothesText, faceText, hairText;
+      try {
+        [bodyText, clothesText, faceText, hairText] = await Promise.all([
+          fetchText(bodyUrl),
+          fetchText(clothesUrl),
+          fetchText(faceUrl),
+          hairUrl ? fetchText(hairUrl) : Promise.resolve(""),
+        ]);
+      } catch (e) {
+        alert("Export failed: couldn't load avatar SVG files.\n\n" + (e?.message || e));
+        return;
+      }
+
+      const svgNS = "http://www.w3.org/2000/svg";
+      const outSvg = document.createElementNS(svgNS, "svg");
+      outSvg.setAttribute("xmlns", svgNS);
+      outSvg.setAttribute("width", String(cardW));
+      outSvg.setAttribute("height", String(cardH));
+      outSvg.setAttribute("viewBox", `0 0 ${cardW} ${cardH}`);
+
+      const cardRect = document.createElementNS(svgNS, "rect");
+      cardRect.setAttribute("x", "0");
+      cardRect.setAttribute("y", "0");
+      cardRect.setAttribute("width", String(cardW));
+      cardRect.setAttribute("height", String(cardH));
+      cardRect.setAttribute("rx", String(cardRadius));
+      cardRect.setAttribute("fill", cardBg);
+      outSvg.appendChild(cardRect);
+
+      const defs = document.createElementNS(svgNS, "defs");
+      const clip = document.createElementNS(svgNS, "clipPath");
+      const clipId = `artClip_${Date.now()}`;
+      clip.setAttribute("id", clipId);
+
+      const clipRect = document.createElementNS(svgNS, "rect");
+      clipRect.setAttribute("x", String(pad));
+      clipRect.setAttribute("y", String(pad));
+      clipRect.setAttribute("width", String(artW));
+      clipRect.setAttribute("height", String(artH));
+      clipRect.setAttribute("rx", String(artRadius));
+      clip.appendChild(clipRect);
+
+      defs.appendChild(clip);
+      outSvg.appendChild(defs);
+
+      const artBgRect = document.createElementNS(svgNS, "rect");
+      artBgRect.setAttribute("x", String(pad));
+      artBgRect.setAttribute("y", String(pad));
+      artBgRect.setAttribute("width", String(artW));
+      artBgRect.setAttribute("height", String(artH));
+      artBgRect.setAttribute("rx", String(artRadius));
+      artBgRect.setAttribute("fill", artBg);
+      outSvg.appendChild(artBgRect);
+
+      const avatarG = document.createElementNS(svgNS, "g");
+      avatarG.setAttribute("clip-path", `url(#${clipId})`);
+      outSvg.appendChild(avatarG);
+
+      inlineLayerInto(avatarG, bodyText, pad, pad, artW, artH);
+      inlineLayerInto(avatarG, clothesText, pad, pad, artW, artH);
+      inlineLayerInto(avatarG, faceText, pad, pad, artW, artH);
+      if (hairText) inlineLayerInto(avatarG, hairText, pad, pad, artW, artH);
+
+      const svgString = new XMLSerializer().serializeToString(outSvg);
+      const url = svgToBlobUrl(svgString);
+
+      const img = new Image();
+      img.onload = () => {
+        const scale = 4;
+        const canvas = document.createElement("canvas");
+        canvas.width = cardW * scale;
+        canvas.height = cardH * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        function fillTextCentered(ctx, text, cx, cy) {
+          const m = ctx.measureText(text);
+          const y = cy + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+          ctx.fillText(text, cx, y);
+        }
+
+        ctx.fillStyle = ink;
+        ctx.beginPath();
+        ctx.arc(metaX + 22, metaY + 22, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.font = `800 28px Montserrat, system-ui, -apple-system, Segoe UI, sans-serif`;
+        fillTextCentered(ctx, mood, metaX + 22, metaY + 22);
+
+        const textRightX = pad + artW - 6;
+
+        ctx.fillStyle = ink;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "alphabetic";
+
+        ctx.font = `800 14px Montserrat, system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.fillText(name, textRightX, metaY + 16);
+
+        ctx.font = `500 14px Montserrat, system-ui, -apple-system, Segoe UI, sans-serif`;
+        ctx.fillText(dateStr, textRightX, metaY + 36);
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        const safeName = effectiveName(nameInput.value).trim().replace(/\s+/g, "_").toLowerCase();
+        a.download = `guest_card_front_${safeName}.png`;
+        a.href = dataUrl;
+        a.click();
+      };
+
+      img.onerror = (e) => {
+        URL.revokeObjectURL(url);
+        console.error("Rasterize failed", e, svgString);
+        alert("Export failed while rasterizing. Check console for details.");
+      };
+
+      img.src = url;
+    }
+
+    document.getElementById("export-btn").addEventListener("click", exportFrontAsPNG);
+
+    /* =========================
+       MOBILE: move export under Wigs
+    ========================= */
+    const exportWrap = document.getElementById("export-wrap");
+    const exportSlot = document.getElementById("export-slot");
+    const editorPanel = document.getElementById("editor-panel");
+
+    function placeExportForViewport() {
+      const isMobile = window.matchMedia("(max-width: 900px)").matches;
+
+      if (isMobile) {
+        if (exportSlot && exportWrap && exportWrap.parentElement !== exportSlot) {
+          exportSlot.appendChild(exportWrap);
+        }
+      } else {
+        if (editorPanel && exportWrap && editorPanel.parentElement === document.querySelector(".left-column")) {
+          const left = editorPanel.parentElement;
+          if (exportWrap.parentElement !== left || exportWrap.previousElementSibling !== editorPanel) {
+            editorPanel.insertAdjacentElement("afterend", exportWrap);
+          }
+        }
+      }
+    }
+
+    placeExportForViewport();
+    window.addEventListener("resize", placeExportForViewport);
+
+    /* =========================
+       SUBMIT → Netlify Function
+       (single, non-duplicated, wired to send-note-btn)
+    ========================= */
+    function getGuestEntryPayload() {
+      const name = effectiveName(nameInput.value);
+
+      let note = (noteInput.value || "").trim() || DEFAULT_NOTE;
+      if (note.length > NOTE_MAX) note = note.slice(0, NOTE_MAX);
+
+      return {
+        createdAt: new Date().toISOString(),
+        name,
+        note,
+        mood: state.icon || DEFAULT_ICON,
+        bg: state.bg || DEFAULT_BG,
+        avatar: {
+          body: state.bodyFile,
+          clothes: state.clothes,
+          face: state.face,
+          hair: state.hair || "",
+        },
+      };
+    }
+
+    function resetComposer() {
+      nameInput.value = DEFAULT_NAME;
+      nameDisplay.textContent = DEFAULT_NAME.toUpperCase();
+      backSignEl.textContent = DEFAULT_NAME;
+
+      noteInput.value = DEFAULT_NOTE;
+      backNoteEl.textContent = DEFAULT_NOTE;
+
+      setSide("front");
+    }
+
+    async function submitGuestbookNote() {
+      const payload = getGuestEntryPayload();
+
+      const btn = document.getElementById("send-note-btn");
+      const prev = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+
+      try {
+        const res = await fetch("/.netlify/functions/guestbook-submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "");
+          throw new Error(msg || `HTTP ${res.status}`);
+        }
+
+        alert("💌 Note sent!");
+        resetComposer();
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong sending the note 😢");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = prev;
+      }
+    }
+
+    document.getElementById("send-note-btn")?.addEventListener("click", submitGuestbookNote);
+
+    /* =========================
+       INIT
+    ========================= */
+    Object.values(LAYER_EL).forEach(img => img.src = EMPTY_SVG);
+
+    normalizeBodyFromVariantId();
+
+    // Front name
+    nameInput.value = DEFAULT_NAME;
+    nameDisplay.textContent = DEFAULT_NAME.toUpperCase();
+    backSignEl.textContent = DEFAULT_NAME;
+
+    // Back sync: date + icon + note
+    backDateEl.textContent = formatDateForCard();
+    backIconEl.textContent = state.icon || DEFAULT_ICON;
+
+    noteInput.value = DEFAULT_NOTE;
+    backNoteEl.textContent = DEFAULT_NOTE;
+
+    // Front layers
+    LAYER_EL.body.src = `avatar/${state.bodyFile}`;
+    LAYER_EL.clothes.src = `avatar/${state.clothes}`;
+    LAYER_EL.face.src = `avatar/${state.face}`;
+    LAYER_EL.hair.src = state.hair ? `avatar/${state.hair}` : EMPTY_SVG;
+    LAYER_EL.hair.style.display = state.hair ? "" : "none";
+
+    // Background
+    artEl.style.background = state.bg;
+
+    // Pickers
+    renderIconPicker();
+    setIcon(state.icon);
+
+    renderBgPicker();
+    renderBodySwatches();
+    ["clothes", "face"].forEach(renderPicker);
+    applyHairRule();
+  </script>
+</body>
+
+</html>
